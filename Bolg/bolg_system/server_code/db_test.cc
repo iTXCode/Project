@@ -52,15 +52,52 @@ void TestBlogTable(){
     */
     
     //测试删除
+    /*
     bool ret=blog_table.Delete(1);
     printf("delete %d\n",ret);
-
+    */
 
     blog_system::MySQLRelease(mysql);
 
 }
+
+
+void TestTagTable(){
+    Json::StyledWriter writer;
+    MYSQL* mysql=blog_system::MySQLInit();
+    blog_system::TagTable tag_table(mysql);
+    //插入测试
+    /***
+    
+    Json::Value tag;
+    tag["tag_name"]="C语言";
+    bool ret=tag_table.Insert(tag);
+    printf("insert %d\n",ret);
+    **/
+    
+    //测试查找
+    /*
+    Json::Value tags;
+    bool ret=tag_table.SelectAll(&tags);
+    printf("select %d\n",ret);
+    printf("tags:%s\n",writer.write(tags).c_str());
+    */
+    
+    //测试删除
+    /*
+    bool ret=tag_table.Delete(1);
+    printf("delete %d\n",ret);
+    */
+
+    
+    blog_system::MySQLRelease(mysql);
+}
+
+
 int main(){
-    TestBlogTable();
+    //TestBlogTable();
+
+    TestTagTable();
     return 0;
 }
 

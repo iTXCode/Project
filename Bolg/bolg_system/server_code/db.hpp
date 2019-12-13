@@ -274,7 +274,7 @@ namespace blog_system{
                 MYSQL_ROW row=mysql_fetch_row(result);
                 Json::Value tag;
                 tag["tag_id"]=atoi(row[0]);
-                tag["tag_name"]=roe[1];
+                tag["tag_name"]=row[1];
                 tags->append(tag);
             }
             printf("查找标签成功! 一共找到%d 个\n",rows);
