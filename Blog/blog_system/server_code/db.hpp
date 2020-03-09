@@ -113,7 +113,7 @@ namespace blog_system{
             //查找不需要太长的sql，固定长度就可以了
             char sql[1024*4]={0};
              if( tag_id ==""){
-                 //此时不需要按照tag来进行筛选结果
+                 //tag_id为空此时不需要按照tag来进行筛选结果
                  sprintf(sql,"select blog_id,title,tag_id,create_time from blog_table");
              }else{
                  //此时就需要对结果按找tag进行筛选
@@ -130,7 +130,7 @@ namespace blog_system{
              
              MYSQL_RES* result=mysql_store_result(mysql_);//将结果存储在MYSQL_RES类型的结构体中 
              int rows=mysql_num_rows(result);//记录结果集合中的行数
-             //遍历结果集合然后将结果过写到blogs参数中,返回调用者
+             //遍历结果集合然后将结果过写到blogs参数中,返回给调用者
              for(int i=0;i<rows;i++){
                  MYSQL_ROW  row=mysql_fetch_row(result);
                  //遍历结果集合中的每行
@@ -150,7 +150,7 @@ namespace blog_system{
         }
         
 
-        //blog同样是输出型参数,他表示根据当前的 blog_id 在数据库中扎到具体的
+        //blog同样是输出型参数,他表示根据当前的 blog_id 在数据库中找到具体的
         //博客内容通过blog参数返回给调用者
         bool SelectOne(int32_t blog_id,Json::Value* blog){
             char sql[1024]={0};//用于存储查询结果
@@ -253,7 +253,7 @@ namespace blog_system{
             
             int ret=mysql_query(mysql_,sql);
             if(ret!=0){
-                printf("删除标签失败!\n",mysql_error(mysql_));
+                printf("删除标签失败! %s\n",mysql_error(mysql_));
                 return false;
             }
 
@@ -288,4 +288,4 @@ namespace blog_system{
     };
 }//end of blog_system
 
-//2:36 
+
