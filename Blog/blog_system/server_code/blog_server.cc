@@ -15,7 +15,7 @@ int main(){
 
   //2.创建相关数据库处理对象
   BlogTable blog_table(mysql);
-
+  TagTable tag_table(mysql);
 
   Server server;
   server.Post("/blog",[&blog_table](const Request& req,
@@ -143,7 +143,9 @@ int main(){
       Json::FastWriter writer;
       Json::Value resp_json; 
       Json::Value req_json; 
-      bool ret=reader.parse(req.body,resp_json);
+      bool ret=reader.parse(req.body,req_json);
+      //参数req.body指定需要解析的对象
+      //参数req_json 指定解析结果的放置地点
       if(!ret){
         resp_json["ok"]=false;
         resp_json["reason"]="update blog parse request failed";
@@ -157,7 +159,7 @@ int main(){
           ||req_json["content"].empty()
           ||req_json["tag_id"].empty()){
         resp_json["ok"]=false;
-        resp_json["reason"]="update blog parse request failed";
+        resp_json["reason"]="update blog request format error";
         resp.status=400;
         resp.set_content(writer.write(resp_json),"application/json");
         return;
@@ -178,6 +180,7 @@ int main(){
       }
 
       //5.构造一个正确的返回结果
+      resp_json["ok"]=true;     
       resp.set_content(writer.write(resp_json),"application/json");
       return;
       });//修改某个博客
@@ -187,26 +190,130 @@ int main(){
  * 字符串(也为了美观而不使用\\d)
  * */
 
-  server.Delete(R"(/blog/(\d+))",[](const Request& req,Response& resp){
+  server.Delete(R"(/blog/(\d+))",[&blog_table](const Request& req,Response& resp){
 
+      Json::FastWriter writer;
+      Json::Value resp_json;
+      //1获取到blog_id
+      int32_t blog_id=std::stoi( req.matches[1].str() );
+      printf("删除id为%d的博客!\n",blog_id);
+
+      //2.调用数据库操作
+      bool ret=blog_table.Delete(blog_id);
+      if(!ret){
+      printf("执行删除失败!\n");
+      resp_json["ok"]=false;
+      resp_json["reason"]="delete blog failed";
+      resp.status=500;
+      resp.set_content(writer.write(resp_json),"application/json");
+      return;
+      }
+    
+       //构造一个正确的响应
+       resp_json["ok"]=true;
+       resp.set_content(writer.write(resp_json),"application/json");
+       return;
       }); //删除某个特定的博客
   
-  server.Post("/tag",[](const Request& req,
-        Response& resp){
+  server.Post("/tag",[&tag_table](const Request& req,Response& resp){
 
+      Json::FastWriter writer;
+      Json::Reader reader;
+      Json::Value req_json;
+      Json::Value resp_json;
+      //1.解析请求
+      
+     bool ret= reader.parse(req.body,req_json);
+     if(!ret){
+      printf("插入标签失败!\n");
+
+      resp_json["ok"]=false;
+      resp_json["reason"]="insert tag req parse failed";
+      resp.status=400;
+      resp.set_content(writer.write(resp_json),"application/json");
+      return;
+      }
+      
+      //2.对请求进行校验
+     if(req_json["tag_name"].empty()){
+       printf("插入标签失败!\n");
+       resp_json["ok"]=false;
+       resp_json["reason"]="insert tag farmat error";
+       resp.status=400;
+       resp.set_content(writer.write(resp_json),"application/json");
+       return;
+     }
+      
+
+     //3.调用数据库操作完成插入
+     ret=tag_table.Insert(req_json);
+     if(!ret){
+       printf("插入标签失败!\n");
+       resp_json["ok"]=false;
+       resp_json["reason"]="insert tag database failed";
+       resp.status=500;
+       resp.set_content(writer.write(resp_json),"application/json");
+
+       return;
+     }
+
+     //4.返回正确的结果
+     resp_json["ok"]=true;
+     resp.set_content(writer.write(resp_json),"qpplication/json");
+     return;
       }); //新增标签
 
-  server.Get("/tag",[](const Request& req,
+
+  server.Get("/tag",[&tag_table](const Request& req,
         Response& resp){
 
+      //1.不需要解析参数,直接执行数据库操作
+      Json::FastWriter writer;
+      Json::Value resp_json;
+      bool ret=tag_table.SelectAll(&resp_json);
+      if(!ret){
+      printf("获取标签失败!\n");
+      resp_json["ok"]=false;
+      resp_json["reason"]="get tag database failed";
+      resp.status=500;
+      resp.set_content(writer.write(resp_json),"application/json");
+      return;
+      }
+
+      //2.构造正确的结果
+      
+      resp.set_content(writer.write(resp_json),"application/json");
       }); //查看所有的标签
 
 
-  server.Delete(R"(/tag/(\d+))",[](const Request& req,
+  server.Delete(R"(/tag/(\d+))",[&tag_table](const Request& req,
         Response& resp){
 
+      Json::FastWriter writer;
+      Json::Value resp_json;
+
+      //1.解析出tag_id
+      int32_t tag_id=std::stoi(req.matches[1].str());
+      printf("删除id为%d的标签!\n",tag_id);
+      
+
+      //2.执行数据库操作
+      bool ret=tag_table.Delete(tag_id);
+      if(!ret){
+      printf("标签删除失败!\n");
+      resp_json["ok"]=false;
+      resp_json["reason"]="delete tag database  failed";
+      resp.status=500;
+      resp.set_content(writer.write(resp_json),"application/json");
+      return;
+      }
+
+      //3.构造正确的响应
+      resp_json["ok"]=true;
+      resp.set_content(writer.write(resp_json),"application/json");
       }); //删除某个特定的标签
-  server.set_base_dir("./wwwroot");//设置静态目录
- server.listen("0.0.0.0",9093); //启动listen 服务器
+  server.set_base_dir("./wwwroot");//设置静态目
+
+  server.listen("0.0.0.0",9093); //启动listen 服务器
  return 0;
 }
