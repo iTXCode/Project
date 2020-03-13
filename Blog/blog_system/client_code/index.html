@@ -20,6 +20,12 @@
   <meta name="msapplication-TileColor" content="#0e90d2">
   <link rel="stylesheet" href="assets/css/amazeui.min.css">
   <link rel="stylesheet" href="assets/css/app.css">
+
+<style>
+  [v-cloak]{
+    display:none;
+  }
+</style>
 </head>
 
 <body id="blog">
@@ -120,7 +126,7 @@
 <div class="am-g am-g-fixed blog-fixed" id="app">
     <div class="am-u-md-8 am-u-sm-12">
 
-        <article class="am-g blog-entry-article" v-for="blog in blogs">
+        <article class="am-g blog-entry-article" v-for="blog in blogs" v-cloak>
            
             <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-text">
                 <span><a href="" class="blog-color">{{tag_id2name(blog.tag_id)}} &nbsp;</a></span>
@@ -135,7 +141,7 @@
     </div>
 
     <div class="am-u-md-4 am-u-sm-12 blog-sidebar">
-        <div class="blog-sidebar-widget blog-bor">
+        <div class="blog-sidebar-widget blog-bor" v-cloak>
             <h2 class="blog-text-center blog-title"><span>About ME</span></h2>
             <img src="assets/i/f14.jpg" alt="about me" class="blog-entry-img" >
             <!--插值表达式-->
@@ -156,7 +162,7 @@
         </div>
         <div class="blog-clear-margin blog-sidebar-widget blog-bor am-g ">
             <h2 class="blog-title"><span>TAG cloud</span></h2>
-            <div class="am-u-sm-12 blog-clear-padding">
+            <div class="am-u-sm-12 blog-clear-padding" v-cloak>
             <a href="" class="blog-tag"v-for="tag in tags">{{tag.tag_name}}</a>
             </div>
         </div>
@@ -243,7 +249,7 @@
         //通过网络来获取数据
         var url='/blog';
         if(tag_id!=null){
-          url='/blog/?tag_id'=+tag_id;
+          url='/blog/?tag_id='+tag_id;
         }
         //最核心操作,访问http服务器的数据
         //ajax 原生API特别难用.Vue也提供了API,环境配置比较麻烦
