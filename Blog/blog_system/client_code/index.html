@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="assets/css/amazeui.min.css">
   <link rel="stylesheet" href="assets/css/app.css">
 
+  <!--style 标签中写的就是css-->
 <style>
   [v-cloak]{
     display:none;
@@ -202,34 +203,10 @@
       //把js中的数据和界面上的内容关联在一起,数据绑定的过程
       author:"iTXCode",
       blogs:[
-        {
-          title:"第一篇博客",
-          tag_id:1,
-          create_time:"2020/03/12"
-        },
-        {
-          title:"我的第二篇博客",
-          tag_id:2,
-          create_time:"2020/03/12"
-        },{
-          title:"我的第三篇博客",
-          tag_id:3,
-          create_time:"2020/03/12"
-        }
+        
       ],
       tags:[
-        {
-          tag_id:1,
-          tag_name:"C语言"
-        },
-        {
-          tag_id:2,
-          tag_name:"C++"
-        },
-        {
-          tag_id:3,
-          tag_name:"Vue"
-        }
+        
       ]
       
     },
@@ -239,6 +216,7 @@
         for(var index in this.tags){
           //this访问到当前的app对象
           //this.tag就相当于上面定义的标签数组
+          //index表示数组下标
           if(this.tags[index].tag_id==tag_id){
             return this.tags[index].tag_name;
           }
@@ -257,7 +235,7 @@
         $.ajax({
           url: url,  //后面的url是上面的的变量
           type: "get",
-          //context:this, //此处的this就表示Vue对象
+          context:this, //此处的this就表示Vue对象
           success:function(data,status){
             //data 表示响应的body数据
             //status 表示响应的状态码
@@ -267,16 +245,31 @@
             //因为此时的this表示当前的$这样的对象
             //而不是Vue对象
             //加上context 之后,this就表示context
-            this.blog=data;
+            this.blogs=data;
+          }
+        })
+      },
+      init(){
+        //1.从服务器上获取tag
+        $.ajax({
+          type:"get",
+          url:"/tag",
+          context:this,
+          success:function(data,status){
+            this.tags=data;
+            //2.从服务器上获取博客
+            //更建议将get_blogs写回回调内部
+            //因为需要先获取tag信息,然后才能 获取博客列表,否则 
+            //tag_id 和 tag_name 之间的映射关系无法正确建立
+            this.get_blogs();
           }
         })
       }
-      
     },
 
   });
   //初始化的获取数据操作
-  app.get_blogs();
+app.init();// 用于回调初始化函数
 </script>
 </body>
 </html>
