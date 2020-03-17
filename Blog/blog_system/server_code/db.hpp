@@ -286,6 +286,22 @@ namespace blog_system{
         private:
         MYSQL* mysql_;
     };
+
+    class UserInfo{
+      public:
+        UserInfo(MYSQL* mysql)
+        :mysql_(mysql)
+        {
+
+        }
+
+        bool Insert(){
+          //插入用户信息
+        return true; 
+        } 
+      private:
+        MYSQL* mysql_;
+    };
 }//end of blog_system
 
 
