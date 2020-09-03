@@ -1,5 +1,6 @@
 #include<regex>
 #include<signal.h>
+#include<string>
 #include"httplib.h"
 #include"db.hpp"
 
@@ -35,7 +36,6 @@ int main(){
       //参数一:解析的目标
       //参数二:解析结果的存储位置 
       //将接收到的字符串转换成Json格式
-      
       if(!ret){
         //解析出错,提示用户
         printf("解析请求失败!%s\n",req.body.c_str());
@@ -336,10 +336,12 @@ int main(){
     Json::Value req_json;
     Json::Value resp_json;
 
+
     bool ret=reader.parse(req.body,req_json);
     if(!ret){
       printf("解析出错！ %s\n",req.body.c_str());
 
+      
       //构造一个响应对象给客户端
       resp_json["ok"]=false;
       resp_json["reason"]="login parse request failed!";
@@ -348,9 +350,9 @@ int main(){
       return;
     }
 
-    if(req_json["user_name"].empty()){
+    if(req_json["user_name"].empty() || req_json["user_password"].empty()){
       //解析出错,给用户提示
-      printf("查找该用户失败! %s\n",req.body.c_str());
+     printf("查找该用户失败! %s\n",req.body.c_str());
 
       //构造一个响应对象,告诉客户端出错
       resp_json["ok"]=false;
@@ -361,11 +363,12 @@ int main(){
     }
 
     //指定数据库操作
+
     ret=user_info.Check(req_json);
     printf("here");
     if(!ret){
       printf("用户密码不匹配!\n");
-
+  
       resp_json["ok"]=false;
       resp_json["reason"]="password is wrong!\n";
       resp.status=400;
@@ -382,14 +385,14 @@ int main(){
 
   server.Post("/sign_in",[&user_info](const Request& req,Response& resp){
     printf("注册用户!\n");
-
-    Json::FastWriter writer;
     Json::Reader reader;
+    Json::FastWriter writer;
     Json::Value req_json;
     Json::Value resp_json;
 
-   bool ret=reader.parse(req.body,req_json);
-    
+
+    bool ret=reader.parse(req.body,req_json);
+
     if(!ret){
       printf("解析出错! %s\n",req.body.c_str());
       
@@ -401,7 +404,8 @@ int main(){
       return;
     }
 
-    if(req_json["user_name"].empty()){
+
+    if(req_json["user_name"].empty() || req_json["user_password"].empty()){
       //解析出错,给用户提示
       printf("插入用户失败! %s\n",req.body.c_str());
       //构造一个响应对象,告诉客户端出错
@@ -416,9 +420,9 @@ int main(){
 
 
    //TODO
-   printf("user_name:%s user_password:%s\n",req_json["user_name"],req_json["user_password"]);
+
     ret=user_info.Insert(req_json);
-    printf("haha\n");
+
     if(!ret){
       //插入用户失败
       printf("用户注册失败!");
@@ -430,9 +434,8 @@ int main(){
       return ;
     }
   
-
     //构造一个正确的响应
-    printf("插入工程!\n");
+    printf("插入用户成功!\n");
     resp_json["ok"]=true;
     resp.set_content(writer.write(resp_json),"application/json");
   });

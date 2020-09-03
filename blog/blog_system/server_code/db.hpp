@@ -1,9 +1,12 @@
 //////////////////////////////////////
 //创建一些相关的类来封装数据库操作
 ////////////////////////////////////////
+#pragma once
 #include<cstdio>
 #include<cstdlib>
 #include<cstring>
+#include<regex>
+#include<string>
 #include<memory>
 #include<mysql/mysql.h>
 #include<jsoncpp/json/json.h>
@@ -304,16 +307,13 @@ namespace blog_system{
 
         }
 
-        bool Insert(const Json::Value &user_info){
+        bool Insert( Json::Value& user_info){
           //使用MD5程序对用户密码进行签名
-        MD5 md5;
-        
-        if(user_info["user_password"].empty() || user_info["user_name"].empty()){
-            printf("用户名或者用户密码为空!\n");
-            return false;
-        }
-        std::string password = md5.StrMD5(user_info["user_passwed"].asCString());
-    
+          MD5 md5;
+          const char* ptr= user_info["user_password"].asCString(); 
+          md5.StrMD5(ptr);
+          std::string password=md5.getMD5(); 
+
           //申请空间用于存储MySQL指令
           char sql[1024*4]={0};
           sprintf(sql,"insert into user_table value(null,'%s','%s')",user_info["user_name"].asCString(),password.c_str());
@@ -329,35 +329,44 @@ namespace blog_system{
           return true; 
         }
 
-        bool Check(const Json::Value& user_info){
-          if(user_info["user_name"].asString().empty()){
-            printf("用户名为空!\n");
-            return false;
-          }
-
+        bool Check( Json::Value& user_info){
+//          if(user_info["user_name"].empty()){
+//            printf("用户名为空!\n");
+//            return false;
+//          }
+//
           //检查用户密码
-          char sql[1024*4]={0};
-          sprintf(sql,"select user_password form user_table where user_name=%s",user_info["username"].asCString());
+          char sql[1024*10]={0};
 
+        sprintf(sql,"select user_password from user_table where user_name='%s' ",user_info["user_name"].asCString());
+         
           int ret=mysql_query(mysql_,sql);
-
-          if(!ret){
-            printf("执行SQL语句出错:%s",mysql_error(mysql_));
+          std::cout<<sql<<std::endl;           
+          if(ret!=0){ 
+            printf("执行SQL语句出错:%s\n",sql);
             return false;
           }
           
 
           //核对传入的用户密码是否正确
           MD5 md5;
-          std::string password=md5.StrMD5(user_info["user_password"].asCString());
-          MYSQL_RES* result=mysql_store_result(mysql_);
-          MYSQL_ROW row=mysql_fetch_row(result);
-          if(row==nullptr){
+          const char* ptr=user_info["user_password"].asCString();
+
+          md5.StrMD5(ptr);
+          
+          std::string password=md5.getMD5();
+          printf("password=%s\n",password.c_str());
+          MYSQL_RES* result = mysql_store_result(mysql_);
+
+
+        MYSQL_ROW row=mysql_fetch_row(result);
+
+          if(!row){
             printf("没有该用户的线管信息!%s\n",user_info["user_name"].asCString());
             return false;
           }
 
-          std::string pw=row[1];
+          std::string pw=row[2];
 
           if(pw.compare(password)!=0){
             printf("用户密码输入错误!请重新输入\n");
