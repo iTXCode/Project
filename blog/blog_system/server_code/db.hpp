@@ -338,10 +338,12 @@ namespace blog_system{
           //检查用户密码
           char sql[1024*10]={0};
 
-        sprintf(sql,"select user_password from user_table where user_name='%s' ",user_info["user_name"].asCString());
+        sprintf(sql,"select user_password from user_table where user_name='%s' ",
+            user_info["user_name"].asCString());
          
           int ret=mysql_query(mysql_,sql);
-          std::cout<<sql<<std::endl;           
+
+  
           if(ret!=0){ 
             printf("执行SQL语句出错:%s\n",sql);
             return false;
@@ -355,18 +357,28 @@ namespace blog_system{
           md5.StrMD5(ptr);
           
           std::string password=md5.getMD5();
-          printf("password=%s\n",password.c_str());
+
+
+          if(mysql_==nullptr){
+            std::cout<<"结果为空"<<std::endl;
+            return false;
+          }
+
           MYSQL_RES* result = mysql_store_result(mysql_);
-
-
+             
+          if(result==nullptr){
+            //结果集合为空
+            std::cout<<"结果集合为空"<<std::endl;
+          }
+  
         MYSQL_ROW row=mysql_fetch_row(result);
 
-          if(!row){
+         if(!row){
             printf("没有该用户的线管信息!%s\n",user_info["user_name"].asCString());
             return false;
           }
 
-          std::string pw=row[2];
+          std::string pw=row[0];
 
           if(pw.compare(password)!=0){
             printf("用户密码输入错误!请重新输入\n");

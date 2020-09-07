@@ -365,7 +365,7 @@ int main(){
     //指定数据库操作
 
     ret=user_info.Check(req_json);
-    printf("here");
+
     if(!ret){
       printf("用户密码不匹配!\n");
   
